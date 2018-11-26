@@ -62,7 +62,9 @@ function createQuote(quote) {
   footerElement.innerHTML = quote.author;
   likeButtonElement.classList.add("btn-success");
   likeButtonElement.innerHTML = "Likes: ";
-  likeButtonElement.id = quote.id;
+  likeButtonElement.dataset.quoteId = quote.id;
+  likeButtonElement.dataset.likes = quote.likes;
+  likeButtonElement.onclick = addLike;
   spanElement.innerHTML = quote.likes;
   dangerButtonElement.classList.add("btn-danger");
   dangerButtonElement.innerHTML = "Delete";
@@ -91,8 +93,35 @@ function deleteQuote() {
 };
 
 function removeQuote(resp, blockquote) {
-  blockquote.remove()
+  blockquote.parentElement.remove()
 }
+
+function addLike() {
+  let id = event.target.dataset.quoteId;
+  let likesCount = event.target.dataset.likes;
+
+  updateLike(id, likesCount)
+  .then(function(json) {
+    let likeButtonElement = document.querySelector(`button[data-quote-id="${json.id}"]`)
+    likeButtonElement.dataset.likes = json.likes;
+    likeButtonElement.children[0].innerHTML = json.likes;
+  })
+};
+
+function updateLike(id, likesCount) {
+  let likeData = {likes: ++likesCount}
+
+  return fetch(`http://localhost:3000/quotes/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify(likeData)
+  })
+  .then(resp => resp.json())
+}
+
 
 document.addEventListener("DOMContentLoaded", function(event) {
   fetchQuotes();
