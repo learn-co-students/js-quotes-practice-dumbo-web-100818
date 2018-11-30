@@ -27,14 +27,19 @@ document.querySelector('#new-quote-form').addEventListener('submit', ()=> {
   let quote = form.elements[0].value
   let author = form.elements[1].value
 
-  if (author !== "" && quote !== ""){
-    if (event.target.id === 'btn-primary'){
-      buttonContent === "Submit" ? createQuote(author, quote) : updateQuote(author, quote)
+
+    if (event.target.id === 'new-quote-form'){
+        if (author !== "" && quote !== ""){
+          buttonContent === "Submit" ? createQuote(author, quote) : editQuote(form.lastElementChild)
+        }
+
+
     }
-  }
+
 })
 
 function createQuote(author, quote){
+
   fetch('http://localhost:3000/quotes', {
     method: "POST",
     headers: {
@@ -104,27 +109,49 @@ function editQuote(button){
   form.elements[1].value = oldAuthor.innerHTML
   form.elements[2].innerHTML = 'Edit'
 
+  let editButton  = document.querySelector('.btn-primary')
+  editButton.addEventListener('click', ()=> {
+      updateQuote(form, quoteId)
+  })
 
 
-
-  updateQuote(form, quoteId, )
 
 
   // by clicking edit we want to populate the values of the inputs on the form with the quote content
   // we also want to change the submit button innerHTML to edit and immediately change it back after the form is submitted
 }
+//
+// function editClicked(){
+//
+// }
 
 
-function updateQuote(form, id, author, quote){
+function updateQuote(form, id){
+  console.log("helllloooo")
+  let quote = document.querySelector('#new-quote')
+  let author = document.querySelector('#author')
 
-  // fetch(`http://localhost:3000/quotes/${id}`, {
-  //   method: "PATCH",
-  //   headers: {
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify({quote: quote, author: author})
-  // })
-}
+  fetch(`http://localhost:3000/quotes/${id}`, {
+    method: "PATCH",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({quote: quote.value, author: author.value})
+  }).then(response => response.json()).then(quote => {
+
+    let deleteButton = document.querySelector(`[data-id='${id}']`)
+    let quoteToUpdate = deleteButton.parentElement.firstElementChild
+    let authorToUpdate = quoteToUpdate.nextElementSibling
+    quoteToUpdate.innerHTML = quote.quote
+    authorToUpdate.innerHTML = quote.author
+    form.elements[0].value = ''
+    form.elements[1].value = ''
+    form.elements[2].innerHTML = 'Submit'
+  })
+
+  }
+
+
 
 document.getElementById('filter').addEventListener('click', updateFilterStatus)
 
